@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "417979445624",
+    "project_id": "safty-band",
+    "storage_bucket": "safty-band.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:417979445624:android:39e5de64311ad29e79d88d",
+        "android_client_info": {
+          "package_name": "com.safty_gadgate.safty_app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAqfi5vaUdjryRPzRbQSdyLIztZeLFyugg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
