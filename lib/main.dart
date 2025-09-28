@@ -1,12 +1,20 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_blue_plus/flutter_blue_plus.dart';
+import 'package:safty_app/contact/contactpagelist.dart';
+import 'package:safty_app/emergencypage.dart';
+import 'package:safty_app/loginpage.dart';
 import 'package:safty_app/registerpage.dart';
+import 'dart:io';
+import 'package:permission_handler/permission_handler.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(
+  //await requestBluetoothPermissions();
+  //await FlutterBluePlus.initialize(license: "YOUR_LICENSE_KEY");
 
-  );
+  await Firebase.initializeApp();
   runApp(MyApp());
 }
 
@@ -37,8 +45,45 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       debugShowCheckedModeBanner: false,
-      home: const Registerpage(),
+      home: AuthWrapper(),
     );
   }
 }
 
+// Future<void> requestBluetoothPermissions() async {
+//   if (Platform.isAndroid) {
+//     // For Android 12+
+//     await [
+//       Permission.bluetoothScan,
+//       Permission.bluetoothConnect,
+//       Permission.bluetoothAdvertise,
+//       Permission.location, // for older Android
+//     ].request();
+//   } else if (Platform.isIOS) {
+//     await [Permission.bluetooth, Permission.location].request();
+//   }
+// }
+class AuthWrapper extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
+      stream: FirebaseAuth.instance.authStateChanges(),
+      builder: (context, snapshot) {
+        // While Firebase is checking
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Scaffold(
+            body: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        // ✅ If user is logged in
+        if (snapshot.hasData) {
+          return EmergencyPage(username: snapshot.data!.email ?? "unknown");
+        }
+
+        // ❌ If user is not logged in
+        return const Loginpage();
+      },
+    );
+  }
+}

@@ -1,6 +1,11 @@
 import 'dart:ui';
-
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
+import 'package:safty_app/contact/contactpagelist.dart';
+import 'package:safty_app/emergencypage.dart';
+import 'package:safty_app/registerpage.dart';
+
 class Loginpage extends StatefulWidget {
   const Loginpage({super.key});
 
@@ -9,6 +14,35 @@ class Loginpage extends StatefulWidget {
 }
 
 class _LoginpageState extends State<Loginpage> {
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
+
+  void loginUser() async {
+    try {
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
+      );
+
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("Login successful")));
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(
+          builder: (c) => EmergencyPage(
+            username: FirebaseAuth.instance.currentUser?.uid ?? '',
+          ),
+        ),
+        (route) => false,
+      );
+    } on FirebaseAuthException catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text(e.message ?? "Error logging in")));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -21,13 +55,34 @@ class _LoginpageState extends State<Loginpage> {
           ),
         ),
         child: Center(
-          child: GlassmorphicCard(),
+          child: GlassmorphicCard(
+            emailController: emailController,
+            passwordController: passwordController,
+            onPressed: loginUser,
+            title: "Login",
+            buttonText: "Login",
+          ),
         ),
       ),
     );
   }
 }
+
 class GlassmorphicCard extends StatelessWidget {
+  final TextEditingController emailController;
+  final TextEditingController passwordController;
+  final VoidCallback onPressed;
+  final String title;
+  final String buttonText;
+
+  const GlassmorphicCard({
+    required this.emailController,
+    required this.passwordController,
+    required this.onPressed,
+    required this.title,
+    required this.buttonText,
+  });
+
   @override
   Widget build(BuildContext context) {
     return ClipRRect(
@@ -49,26 +104,30 @@ class GlassmorphicCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Register",
+                title,
                 style: TextStyle(
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
+                  fontSize: 28,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               SizedBox(height: 25),
               TextField(
+                controller: emailController,
                 decoration: InputDecoration(
-                  hintText: "Username",
+                  hintText: "Email",
                   hintStyle: TextStyle(color: Colors.white70),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               SizedBox(height: 15),
               TextField(
+                controller: passwordController,
                 obscureText: true,
                 decoration: InputDecoration(
                   hintText: "Password",
@@ -76,13 +135,14 @@ class GlassmorphicCard extends StatelessWidget {
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               SizedBox(height: 25),
               ElevatedButton(
-                onPressed: () {},
+                onPressed: onPressed,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
                   backgroundColor: Colors.white.withOpacity(0.3),
@@ -91,8 +151,20 @@ class GlassmorphicCard extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  "Register",
+                  buttonText,
                   style: TextStyle(color: Colors.white, fontSize: 18),
+                ),
+              ),
+              TextButton(
+                onPressed: () {
+                  Navigator.pushReplacement(
+                    context,
+                    MaterialPageRoute(builder: (context) => Registerpage()),
+                  );
+                },
+                child: Text(
+                  "Create an account",
+                  style: TextStyle(color: Colors.white70),
                 ),
               ),
             ],
@@ -102,4 +174,3 @@ class GlassmorphicCard extends StatelessWidget {
     );
   }
 }
-

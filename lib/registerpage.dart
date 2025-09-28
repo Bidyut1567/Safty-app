@@ -1,8 +1,10 @@
 import 'dart:ui';
 
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_database/firebase_database.dart';
 import 'package:flutter/material.dart';
 import 'package:safty_app/loginpage.dart';
+
 class Registerpage extends StatefulWidget {
   const Registerpage({super.key});
 
@@ -11,45 +13,27 @@ class Registerpage extends StatefulWidget {
 }
 
 class _RegisterpageState extends State<Registerpage> {
-  final usernameController = TextEditingController();
+  final emailController = TextEditingController();
   final passwordController = TextEditingController();
 
-  final databaseRef = FirebaseDatabase.instance.ref("users"); // Realtime DB reference
-
-  @override
-  void dispose() {
-    usernameController.dispose();
-    passwordController.dispose();
-    super.dispose();
-  }
-
   void registerUser() async {
-    String username = usernameController.text.trim();
-    String password = passwordController.text.trim();
-
-    if(username.isEmpty || password.isEmpty){
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Username & Password cannot be empty"))
-      );
-      return;
-    }
-
     try {
-      await databaseRef.child(username).set({
-        "password": password,
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("User registered successfully"))
+      await FirebaseAuth.instance.createUserWithEmailAndPassword(
+        email: emailController.text.trim(),
+        password: passwordController.text.trim(),
       );
 
-      Navigator.push(
-          context,
-          MaterialPageRoute(builder: (c)=> Loginpage())
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text("User registered successfully")));
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (c) => Loginpage()),
       );
-    } catch (e) {
-      print(e);
+    } on FirebaseAuthException catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text("Error registering user"))
+        SnackBar(content: Text(e.message ?? "Error registering user")),
       );
     }
   }
@@ -67,9 +51,11 @@ class _RegisterpageState extends State<Registerpage> {
         ),
         child: Center(
           child: GlassmorphicCard(
-            usernameController: usernameController,
+            emailController: emailController,
             passwordController: passwordController,
-            registerUser: registerUser,
+            onPressed: registerUser,
+            title: "Register",
+            buttonText: "Register",
           ),
         ),
       ),
@@ -78,14 +64,18 @@ class _RegisterpageState extends State<Registerpage> {
 }
 
 class GlassmorphicCard extends StatelessWidget {
-  final TextEditingController usernameController;
+  final TextEditingController emailController;
   final TextEditingController passwordController;
-  final VoidCallback registerUser;
+  final VoidCallback onPressed;
+  final String title;
+  final String buttonText;
 
-  GlassmorphicCard({
-    required this.usernameController,
+  const GlassmorphicCard({
+    required this.emailController,
     required this.passwordController,
-    required this.registerUser,
+    required this.onPressed,
+    required this.title,
+    required this.buttonText,
   });
 
   @override
@@ -109,23 +99,25 @@ class GlassmorphicCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                "Register",
+                title,
                 style: TextStyle(
-                    fontSize: 28,
-                    color: Colors.white,
-                    fontWeight: FontWeight.bold),
+                  fontSize: 28,
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
               SizedBox(height: 25),
               TextField(
-                controller: usernameController,
+                controller: emailController,
                 decoration: InputDecoration(
-                  hintText: "Username",
+                  hintText: "Email",
                   hintStyle: TextStyle(color: Colors.white70),
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               SizedBox(height: 15),
@@ -138,13 +130,14 @@ class GlassmorphicCard extends StatelessWidget {
                   filled: true,
                   fillColor: Colors.white.withOpacity(0.1),
                   border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(15),
-                      borderSide: BorderSide.none),
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
               SizedBox(height: 25),
               ElevatedButton(
-                onPressed: registerUser,
+                onPressed: onPressed,
                 style: ElevatedButton.styleFrom(
                   padding: EdgeInsets.symmetric(horizontal: 80, vertical: 15),
                   backgroundColor: Colors.white.withOpacity(0.3),
@@ -153,7 +146,7 @@ class GlassmorphicCard extends StatelessWidget {
                   ),
                 ),
                 child: Text(
-                  "Register",
+                  buttonText,
                   style: TextStyle(color: Colors.white, fontSize: 18),
                 ),
               ),
